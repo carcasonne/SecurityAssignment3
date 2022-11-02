@@ -1,5 +1,10 @@
 # MySecretNotes
 ## Sql-injectable flask site
+
+
+TESTER !!!!!!!!!!!!!!!!!!!!!!!! 
+
+
 This flask site is a webservice mimmicking a secure note taking software site. You can register a user and write 
 notes, your notes are "hidden" and can only be seen by you. You can share your notes and import other users notes 
 from the public note id. This site is all fine and dandy on the surface, but it is heavily sql injectable. See 
