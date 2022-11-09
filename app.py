@@ -207,17 +207,16 @@ def register():
             statement = """INSERT INTO users(id,username,password) VALUES(null,?,?);"""
             print(statement)
             c.execute(statement, (username, hashed_password))
+            statement = "SELECT * FROM users WHERE username = ?;"
+            c.execute(statement, (username,))
+            result = c.fetchall()
+            session.clear()
+            session['logged_in'] = True
+            session['userid'] = result[0][0]
+            session['username'] = result[0][1]
             db.commit()
             db.close()
-            return f"""<html>
-                        <head>
-                            <meta http-equiv="refresh" content="2;url=/" />
-                        </head>
-                        <body>
-                            <h1>SUCCESS!!! Redirecting in 2 seconds...</h1>
-                        </body>
-                        </html>
-                        """
+            return redirect(url_for('index'))
 
         db.commit()
         db.close()
@@ -274,7 +273,6 @@ def logout():
 
 
 if __name__ == "__main__":
-    print(hash_password("DenizIsler89!"))
     # create database if it doesn't exist yet
     if not os.path.exists(app.database):
         init_db()
