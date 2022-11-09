@@ -5,6 +5,10 @@ from flask import Flask, current_app, g, session, redirect, render_template, url
 
 from datetime import datetime
 from cryptography.fernet import Fernet
+from base64 import b64encode
+from Cryptodome.Hash import SHA256
+from Cryptodome.Protocol.KDF import bcrypt
+from Cryptodome.Protocol.KDF import bcrypt_check
 
 ### DATABASE FUNCTIONS ###
 
@@ -137,7 +141,6 @@ def notes():
 
     return render_template('notes.html', notes=notes, importerror=importerror)
 
-
 @app.route("/login/", methods=('GET', 'POST'))
 def login():
     error = ""
@@ -147,11 +150,11 @@ def login():
 
         db = connect_db()
         c = db.cursor()
-        statement = "SELECT * FROM users WHERE username = ? AND password = ?;"
-        c.execute(statement, (username, password))
+        statement = "SELECT * FROM users WHERE username = ?;"
+        c.execute(statement, (username,))
         result = c.fetchall()
 
-        if len(result) > 0:
+        if len(result) > 0 and verify_password(password, result[0][2]):
             session.clear()
             session['logged_in'] = True
             session['userid'] = result[0][0]
@@ -200,9 +203,10 @@ def register():
                         passworderror = passworderror + "- at least 1 lowercase character "
 
         if not errored:
+            hashed_password = hash_password(password)
             statement = """INSERT INTO users(id,username,password) VALUES(null,?,?);"""
             print(statement)
-            c.execute(statement, (username, password))
+            c.execute(statement, (username, hashed_password))
             db.commit()
             db.close()
             return f"""<html>
@@ -244,6 +248,22 @@ def password_check(password):
         'lowercase_error': lowercase_error
     }
 
+def hash_password(password):
+    byte_password = password.encode('utf-8')
+    b64pwd = b64encode(SHA256.new(byte_password).digest())
+    return bcrypt(b64pwd, 12)
+
+
+def verify_password(password, bcrypt_hash):
+    byte_password = password.encode('utf-8')
+    error = False
+    try:
+        b64pwd = b64encode(SHA256.new(byte_password).digest())
+        bcrypt_check(b64pwd, bcrypt_hash)
+    except ValueError:
+        error = True
+
+    return not error
 
 @app.route("/logout/")
 @login_required
