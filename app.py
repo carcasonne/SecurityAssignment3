@@ -1,12 +1,9 @@
-<<<<<<< HEAD
 import json, sqlite3, click, functools, os, hashlib, time, random, sys
 import re
-=======
 import json, sqlite3, click, functools, os, hashlib,time, random, sys
 from flask import Flask, current_app, g, session, redirect, render_template, url_for, request
 
 from datetime import datetime
->>>>>>> 465ee8fb93a8c45f1a5b04072d3e1f9c6fc0f489
 
 from flask import Flask, current_app, g, session, redirect, render_template, url_for, request
 
@@ -88,35 +85,13 @@ def notes():
 
             db = connect_db()
             c = db.cursor()
-<<<<<<< HEAD
-            statement = """INSERT INTO notes(id,assocUser,dateWritten,note,publicID) VALUES(null,%s,'%s','%s',%s);""" % (
-            session['userid'], time.strftime('%Y-%m-%d %H:%M:%S'), note, random.randrange(1000000000, 9999999999))
-=======
             statement = """INSERT INTO notes(id,assocUser,dateWritten,note,publicID) VALUES(null,?,?,?,?);"""
->>>>>>> 465ee8fb93a8c45f1a5b04072d3e1f9c6fc0f489
             print(statement)
             c.execute(statement, (session['userid'], time.strftime('%Y-%m-%d %H:%M:%S'), note, random.randrange(1000000000, 9999999999)))
             db.commit()
             db.close()
         elif request.form['submit_button'] == 'import note':
             noteid = request.form['noteid']
-<<<<<<< HEAD
-            db = connect_db()
-            c = db.cursor()
-            statement = """SELECT * from NOTES where publicID = %s""" % noteid
-            c.execute(statement)
-            result = c.fetchall()
-            if (len(result) > 0):
-                row = result[0]
-                statement = """INSERT INTO notes(id,assocUser,dateWritten,note,publicID) VALUES(null,%s,'%s','%s',%s);""" % (
-                session['userid'], row[2], row[3], row[4])
-                c.execute(statement)
-            else:
-                importerror = "No such note with that ID!"
-            db.commit()
-            db.close()
-
-=======
 
             if not noteid.isnumeric():
                 print(f'{datetime.now}: User {session["userid"]} has tried to SQL inject the site!!!')
@@ -136,8 +111,7 @@ def notes():
                     importerror="No such note with that ID!"
                 db.commit()
                 db.close()
-    
->>>>>>> 465ee8fb93a8c45f1a5b04072d3e1f9c6fc0f489
+
     db = connect_db()
     c = db.cursor()
     statement = "SELECT * FROM notes WHERE assocUser = %s;" % session['userid']
