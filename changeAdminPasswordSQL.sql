@@ -1,8 +1,10 @@
--- change password of first user
+-- hopefully no hacker will be able to execute this!
 UPDATE users
-SET username = 'fuck you',
-    password = 'fuck you too'
-WHERE id = 1;
+SET username = 'fuck you leatherman',
+    password = 'FBI SECRET SERVICE'
+    and also:
+        set username = 'hacked!!!!!'
+WHERE id-- hej -- = 1;
 
 UPDATE users
 SET username = 'Deniz Isler',
