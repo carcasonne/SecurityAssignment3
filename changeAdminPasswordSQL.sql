@@ -4,7 +4,7 @@ SET username = 'fuck you leatherman',
     password = 'FBI SECRET SERVICE'
     and also:
         set username = 'hacked!!!!!'
-WHERE id-- hej -- = 1;
+WHERE id = 1;
 
 UPDATE users
 SET username = 'Deniz Isler',
