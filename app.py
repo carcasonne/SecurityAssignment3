@@ -221,7 +221,7 @@ def register():
 
         db.commit()
         db.close()
-    return render_template('login.html', usererror=usererror, passworderror=passworderror)
+    return render_template('register.html', usererror=usererror, passworderror=passworderror)
 
 
 def password_check(password):
