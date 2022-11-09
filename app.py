@@ -111,10 +111,11 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+
         db = connect_db()
         c = db.cursor()
-        statement = "SELECT * FROM users WHERE username = '%s' AND password = '%s';" %(username, password)
-        c.execute(statement)
+        statement = "SELECT * FROM users WHERE username = ? AND password = ?;" 
+        c.execute(statement, (username, password))
         result = c.fetchall()
 
         if len(result) > 0:
@@ -134,18 +135,11 @@ def register():
     usererror = ""
     passworderror = ""
     if request.method == 'POST':
-        
-
         username = request.form['username']
         password = request.form['password']
         db = connect_db()
         c = db.cursor()
-        pass_statement = """SELECT * FROM users WHERE password = '%s';""" %password
-        user_statement = """SELECT * FROM users WHERE username = '%s';""" %username
-        c.execute(pass_statement)
-        if(len(c.fetchall())>0):
-            errored = True
-            passworderror = "That password is already in use by someone else!"
+        user_statement = """SELECT * FROM users WHERE username = ?;""" 
 
         c.execute(user_statement)
         if(len(c.fetchall())>0):
@@ -194,3 +188,4 @@ if __name__ == "__main__":
         print("'python3 app.py' (to start on port 5000)")
         print("or")
         print("'sudo python3 app.py 80' (to run on any other port)")
+    
