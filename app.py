@@ -141,15 +141,15 @@ def register():
         c = db.cursor()
         user_statement = """SELECT * FROM users WHERE username = ?;""" 
 
-        c.execute(user_statement)
+        c.execute(user_statement, username)
         if(len(c.fetchall())>0):
             errored = True
-            usererror = "That username is already in use by someone else!"
+            usererror = "You must choose another username"
 
         if(not errored):
-            statement = """INSERT INTO users(id,username,password) VALUES(null,'%s','%s');""" %(username,password)
+            statement = """INSERT INTO users(id,username,password) VALUES(null,?,?);"""
             print(statement)
-            c.execute(statement)
+            c.execute(statement, (username, password))
             db.commit()
             db.close()
             return f"""<html>
