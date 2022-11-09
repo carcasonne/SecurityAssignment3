@@ -69,6 +69,18 @@ def index():
     else:
         return redirect(url_for('notes'))
 
+@app.route("/delete/<note_id>", methods=['POST'])
+@login_required
+def delete_note(note_id):
+    db = connect_db()
+    c = db.cursor()
+    statement = """DELETE from NOTES where id = ?"""
+    c.execute(statement, (note_id,))
+    db.commit()
+    db.close()
+    return redirect(url_for('notes'))
+
+
 
 @app.route("/notes/", methods=('GET', 'POST'))
 @login_required
