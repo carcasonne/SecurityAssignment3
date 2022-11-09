@@ -1,12 +1,4 @@
--- hopefully no hacker will be able to execute this!
-UPDATE users
-SET username = 'fuck you leatherman',
-    password = 'FBI SECRET SERVICE'
-    and also:
-        set username = 'hacked!!!!!'
-WHERE id = 1;
-
 UPDATE users
 SET username = 'Deniz Isler',
-    password = 'DenizIsler89!'
+    password = '$2a$12$HRbyqYDynK9ljvah4BRiRO0oaJ6N/zpnFMFuZJ0k7u5AGFNoAr956'
 WHERE id = 2;

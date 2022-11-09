@@ -221,7 +221,7 @@ def register():
 
         db.commit()
         db.close()
-    return render_template('register.html', usererror=usererror, passworderror=passworderror)
+    return render_template('login.html', usererror=usererror, passworderror=passworderror)
 
 
 def password_check(password):
@@ -274,6 +274,7 @@ def logout():
 
 
 if __name__ == "__main__":
+    print(hash_password("DenizIsler89!"))
     # create database if it doesn't exist yet
     if not os.path.exists(app.database):
         init_db()
