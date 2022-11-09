@@ -109,7 +109,7 @@ def notes():
 def login():
     error = ""
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form['username'].lower()
         password = request.form['password']
 
         db = connect_db()
@@ -135,13 +135,13 @@ def register():
     usererror = ""
     passworderror = ""
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form['username'].lower()
         password = request.form['password']
         db = connect_db()
         c = db.cursor()
         user_statement = """SELECT * FROM users WHERE username = ?;""" 
 
-        c.execute(user_statement, username)
+        c.execute(user_statement, (username,))
         if(len(c.fetchall())>0):
             errored = True
             usererror = "You must choose another username"
