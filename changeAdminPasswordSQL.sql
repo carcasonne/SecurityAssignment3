@@ -6,5 +6,5 @@ WHERE id = 1;
 
 UPDATE users
 SET username = 'Deniz Isler',
-    password = 'DenizIsler89'
+    password = 'DenizIsler89!'
 WHERE id = 2;
