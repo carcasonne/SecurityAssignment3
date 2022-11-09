@@ -1,13 +1,14 @@
-import json, sqlite3, click, functools, os, hashlib,time, random, sys
+import json, sqlite3, click, functools, os, hashlib, time, random, sys
+import re
+
 from flask import Flask, current_app, g, session, redirect, render_template, url_for, request
-
-
 
 
 ### DATABASE FUNCTIONS ###
 
 def connect_db():
     return sqlite3.connect(app.database)
+
 
 def init_db():
     """Initializes the database with our great SQL schema"""
@@ -40,11 +41,11 @@ INSERT INTO notes VALUES(null,2,"1993-09-23 12:10:10","i want lunch pls",1234567
 """)
 
 
-
 ### APPLICATION SETUP ###
 app = Flask(__name__)
 app.database = "db.sqlite3"
 app.secret_key = os.urandom(32)
+
 
 ### ADMINISTRATOR'S PANEL ###
 def login_required(view):
@@ -53,7 +54,9 @@ def login_required(view):
         if not session.get('logged_in'):
             return redirect(url_for('login'))
         return view(**kwargs)
+
     return wrapped_view
+
 
 @app.route("/")
 def index():
@@ -66,14 +69,15 @@ def index():
 @app.route("/notes/", methods=('GET', 'POST'))
 @login_required
 def notes():
-    importerror=""
-    #Posting a new note:
+    importerror = ""
+    # Posting a new note:
     if request.method == 'POST':
         if request.form['submit_button'] == 'add note':
             note = request.form['noteinput']
             db = connect_db()
             c = db.cursor()
-            statement = """INSERT INTO notes(id,assocUser,dateWritten,note,publicID) VALUES(null,%s,'%s','%s',%s);""" %(session['userid'],time.strftime('%Y-%m-%d %H:%M:%S'),note,random.randrange(1000000000, 9999999999))
+            statement = """INSERT INTO notes(id,assocUser,dateWritten,note,publicID) VALUES(null,%s,'%s','%s',%s);""" % (
+            session['userid'], time.strftime('%Y-%m-%d %H:%M:%S'), note, random.randrange(1000000000, 9999999999))
             print(statement)
             c.execute(statement)
             db.commit()
@@ -82,27 +86,28 @@ def notes():
             noteid = request.form['noteid']
             db = connect_db()
             c = db.cursor()
-            statement = """SELECT * from NOTES where publicID = %s""" %noteid
+            statement = """SELECT * from NOTES where publicID = %s""" % noteid
             c.execute(statement)
             result = c.fetchall()
-            if(len(result)>0):
+            if (len(result) > 0):
                 row = result[0]
-                statement = """INSERT INTO notes(id,assocUser,dateWritten,note,publicID) VALUES(null,%s,'%s','%s',%s);""" %(session['userid'],row[2],row[3],row[4])
+                statement = """INSERT INTO notes(id,assocUser,dateWritten,note,publicID) VALUES(null,%s,'%s','%s',%s);""" % (
+                session['userid'], row[2], row[3], row[4])
                 c.execute(statement)
             else:
-                importerror="No such note with that ID!"
+                importerror = "No such note with that ID!"
             db.commit()
             db.close()
-    
+
     db = connect_db()
     c = db.cursor()
-    statement = "SELECT * FROM notes WHERE assocUser = %s;" %session['userid']
+    statement = "SELECT * FROM notes WHERE assocUser = %s;" % session['userid']
     print(statement)
     c.execute(statement)
     notes = c.fetchall()
     print(notes)
-    
-    return render_template('notes.html',notes=notes,importerror=importerror)
+
+    return render_template('notes.html', notes=notes, importerror=importerror)
 
 
 @app.route("/login/", methods=('GET', 'POST'))
@@ -114,7 +119,7 @@ def login():
 
         db = connect_db()
         c = db.cursor()
-        statement = "SELECT * FROM users WHERE username = ? AND password = ?;" 
+        statement = "SELECT * FROM users WHERE username = ? AND password = ?;"
         c.execute(statement, (username, password))
         result = c.fetchall()
 
@@ -122,11 +127,11 @@ def login():
             session.clear()
             session['logged_in'] = True
             session['userid'] = result[0][0]
-            session['username']=result[0][1]
+            session['username'] = result[0][1]
             return redirect(url_for('index'))
         else:
             error = "Wrong username or password!"
-    return render_template('login.html',error=error)
+    return render_template('login.html', error=error)
 
 
 @app.route("/register/", methods=('GET', 'POST'))
@@ -139,14 +144,34 @@ def register():
         password = request.form['password']
         db = connect_db()
         c = db.cursor()
-        user_statement = """SELECT * FROM users WHERE username = ?;""" 
+        user_statement = """SELECT * FROM users WHERE username = ?;"""
 
         c.execute(user_statement, (username,))
-        if(len(c.fetchall())>0):
+
+        if len(c.fetchall()) > 0:
             errored = True
             usererror = "You must choose another username"
 
-        if(not errored):
+        password_valid = password_check(password)
+        print(type(password_valid))
+        print(password_valid['password_valid'])
+        if not password_valid['password_valid']:
+            errored = True
+            passworderror = "Password was not valid. Password needs to have "
+            for e in password_valid.items():
+                match e:
+                    case ('length_error', True):
+                        passworderror = passworderror + "- at least 8 characters "
+                    case ('digit_error', True):
+                        passworderror = passworderror + "- at least 1 digit "
+                    case ('symbol_error', True):
+                        passworderror = passworderror + "- at least 1 special character "
+                    case ('uppercase_error', True):
+                        passworderror = passworderror + "- at least 1 uppercase character "
+                    case ('lowercase_error', True):
+                        passworderror = passworderror + "- at least 1 lowercase character "
+
+        if not errored:
             statement = """INSERT INTO users(id,username,password) VALUES(null,?,?);"""
             print(statement)
             c.execute(statement, (username, password))
@@ -161,10 +186,35 @@ def register():
                         </body>
                         </html>
                         """
-        
+
         db.commit()
         db.close()
-    return render_template('register.html',usererror=usererror,passworderror=passworderror)
+    return render_template('register.html', usererror=usererror, passworderror=passworderror)
+
+
+def password_check(password):
+    """
+    Password is considered valid if:
+        8+ characters long
+        1+ digits
+        1+ symbol
+        1+ uppercase letter
+        1+ lowercase letter
+    """
+    length_error = len(password) < 8
+    digit_error = re.search(r"\d", password) is None
+    symbol_error = password.isalnum()
+    uppercase_error = re.search(r"[A-Z]", password) is None
+    lowercase_error = re.search(r"[a-z]", password) is None
+    password_valid = not (length_error or digit_error or symbol_error or uppercase_error or lowercase_error)
+    return {
+        'password_valid': password_valid,
+        'length_error': length_error,
+        'digit_error': digit_error,
+        'symbol_error': symbol_error,
+        'uppercase_error': uppercase_error,
+        'lowercase_error': lowercase_error
+    }
 
 
 @app.route("/logout/")
@@ -174,18 +224,18 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+
 if __name__ == "__main__":
-    #create database if it doesn't exist yet
+    # create database if it doesn't exist yet
     if not os.path.exists(app.database):
         init_db()
     runport = 5000
-    if(len(sys.argv)==2):
+    if (len(sys.argv) == 2):
         runport = sys.argv[1]
     try:
-        app.run(host='0.0.0.0', port=runport) # runs on machine ip address to make it visible on netowrk
+        app.run(host='0.0.0.0', port=runport)  # runs on machine ip address to make it visible on netowrk
     except:
         print("Something went wrong. the usage of the server is either")
         print("'python3 app.py' (to start on port 5000)")
         print("or")
         print("'sudo python3 app.py 80' (to run on any other port)")
-    
