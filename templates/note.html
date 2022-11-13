@@ -19,5 +19,8 @@
       <form method="post" action="{{ url_for('delete_note', note_id=note[0]) }}">
         <input class="btn-solid-lg notes__input-margin-top" type="submit" name="delete" value="Delete">
       </form>
+      <form method="post" action="{{ url_for('copy_note', note_id=note[0]) }}">
+        <input class="btn-solid-lg notes__input-margin-top" type="submit" name="copy" value="Copy">
+      </form>
     </div>
   </li>

@@ -82,6 +82,16 @@ def delete_note(note_id):
     db.close()
     return redirect(url_for('notes'))
 
+@app.route("/copy/<note_id>", methods=['POST'])
+@login_required
+def copy_note(note_id):
+    db = connect_db()
+    c = db.cursor()
+    statement = """INSERT INTO notes(id,assocUser,dateWritten,note,publicID) SELECT null, assocUser, dateWritten, note, publicID from NOTES where id = ?;"""
+    c.execute(statement, (note_id,))
+    db.commit()
+    db.close()
+    return redirect(url_for('notes'))
 
 
 @app.route("/notes/", methods=('GET', 'POST'))
