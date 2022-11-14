@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  note_app:
+    build: ./noteapp
+    container_name: noteapp
+    volumes:
+      - ./noteapp:/noteApp
+    restart: always
+    expose:
+      - 5000
+    command: >
+      sh -c "uwsgi --ini app.ini --http :5000"
+
+  nginx_webserver:
+    build: ./nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - note_app
+    command: >
+      sh -c "nginx -g 'daemon off;'"
