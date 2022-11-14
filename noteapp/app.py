@@ -1,6 +1,5 @@
-import json, sqlite3, click, functools, os, hashlib, time, random, sys
 import re
-import json, sqlite3, click, functools, os, hashlib, time, random, sys
+import json, sqlite3, click, functools, os, hashlib,time, random, sys
 from flask import Flask, current_app, g, session, redirect, render_template, url_for, request
 
 from datetime import datetime
@@ -9,7 +8,6 @@ from base64 import b64encode
 from Cryptodome.Hash import SHA256
 from Cryptodome.Protocol.KDF import bcrypt
 from Cryptodome.Protocol.KDF import bcrypt_check
-
 
 ### DATABASE FUNCTIONS ###
 
@@ -68,10 +66,9 @@ def login_required(view):
 @app.route("/")
 def index():
     if not session.get('logged_in'):
-        return render_template('templates/index.html')
+        return render_template('index.html')
     else:
         return redirect(url_for('notes'))
-
 
 @app.route("/delete/<note_id>", methods=['POST'])
 @login_required
@@ -84,6 +81,16 @@ def delete_note(note_id):
     db.close()
     return redirect(url_for('notes'))
 
+@app.route("/copy/<note_id>", methods=['POST'])
+@login_required
+def copy_note(note_id):
+    db = connect_db()
+    c = db.cursor()
+    statement = """INSERT INTO notes(id,assocUser,dateWritten,note,publicID) SELECT null, assocUser, dateWritten, note, publicID from NOTES where id = ?;"""
+    c.execute(statement, (note_id,))
+    db.commit()
+    db.close()
+    return redirect(url_for('notes'))
 
 @app.route("/notes/", methods=('GET', 'POST'))
 @login_required
@@ -107,8 +114,7 @@ def notes():
             c = db.cursor()
             statement = """INSERT INTO notes(id,assocUser,dateWritten,note,publicID) VALUES(null,?,?,?,?);"""
             print(statement)
-            c.execute(statement, (
-            session['userid'], time.strftime('%Y-%m-%d %H:%M:%S'), note, random.randrange(1000000000, 9999999999)))
+            c.execute(statement, (session['userid'], time.strftime('%Y-%m-%d %H:%M:%S'), note, random.randrange(1000000000, 9999999999)))
             db.commit()
             db.close()
         elif request.form['submit_button'] == 'import note':
@@ -116,21 +122,20 @@ def notes():
 
             if not noteid.isnumeric():
                 print(f'{datetime.now}: User {session["userid"]} has tried to SQL inject the site!!!')
-                importerror = "Your IP address has been sent to the Federal Bureau of Ivestigation for malicious attempts at hacking."
+                importerror="Your IP address has been sent to the Federal Bureau of Ivestigation for malicious attempts at hacking."
             else:
                 db = connect_db()
                 c = db.cursor()
                 statement = """SELECT * from NOTES where publicID = ?"""
                 c.execute(statement, (noteid,))
                 result = c.fetchall()
-                if (len(result) > 0):
+                if(len(result)>0):
                     row = result[0]
                     # Not necesarry to sanitize here, this is all backend information
-                    statement = """INSERT INTO notes(id,assocUser,dateWritten,note,publicID) VALUES(null,%s,'%s','%s',%s);""" % (
-                    session['userid'], row[2], row[3], row[4])
+                    statement = """INSERT INTO notes(id,assocUser,dateWritten,note,publicID) VALUES(null,%s,'%s','%s',%s);""" %(session['userid'],row[2],row[3],row[4])
                     c.execute(statement)
                 else:
-                    importerror = "No such note with that ID!"
+                    importerror="No such note with that ID!"
                 db.commit()
                 db.close()
 
@@ -142,8 +147,7 @@ def notes():
     notes = c.fetchall()
     print(notes)
 
-    return render_template('templates/notes.html', notes=notes, importerror=importerror)
-
+    return render_template('notes.html', notes=notes, importerror=importerror)
 
 @app.route("/login/", methods=('GET', 'POST'))
 def login():
@@ -166,7 +170,7 @@ def login():
             return redirect(url_for('index'))
         else:
             error = "Wrong username or password!"
-    return render_template('templates/login.html', error=error)
+    return render_template('login.html', error=error)
 
 
 @app.route("/register/", methods=('GET', 'POST'))
@@ -211,21 +215,20 @@ def register():
             statement = """INSERT INTO users(id,username,password) VALUES(null,?,?);"""
             print(statement)
             c.execute(statement, (username, hashed_password))
+            statement = "SELECT * FROM users WHERE username = ?;"
+            c.execute(statement, (username,))
+            result = c.fetchall()
+            session.clear()
+            session['logged_in'] = True
+            session['userid'] = result[0][0]
+            session['username'] = result[0][1]
             db.commit()
             db.close()
-            return f"""<html>
-                        <head>
-                            <meta http-equiv="refresh" content="2;url=/" />
-                        </head>
-                        <body>
-                            <h1>SUCCESS!!! Redirecting in 2 seconds...</h1>
-                        </body>
-                        </html>
-                        """
+            return redirect(url_for('index'))
 
         db.commit()
         db.close()
-    return render_template('templates/register.html', usererror=usererror, passworderror=passworderror)
+    return render_template('register.html', usererror=usererror, passworderror=passworderror)
 
 
 def password_check(password):
@@ -269,7 +272,6 @@ def verify_password(password, bcrypt_hash):
 
     return not error
 
-
 @app.route("/logout/")
 @login_required
 def logout():
@@ -282,8 +284,8 @@ if __name__ == "__main__":
     # create database if it doesn't exist yet
     if not os.path.exists(app.database):
         init_db()
-    runport = 80
-    if len(sys.argv) == 2:
+    runport = 5000
+    if (len(sys.argv) == 2):
         runport = sys.argv[1]
     try:
         app.run(host='0.0.0.0', port=runport)  # runs on machine ip address to make it visible on netowrk
