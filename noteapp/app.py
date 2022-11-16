@@ -102,9 +102,9 @@ def notes():
             note = request.form['noteinput']
 
             if note == "SECRET STRING":
-                userEnc = "gAAAAABja6SDmmMUb0iSd-ywgJjFjXhQQRHl8urGQ-iqnusLIkrKZKqM91kG_JHtI30AmC6qxtaEloxbSoqoMpoVNuzZ_Lgs7w=="
-                passEnc = "gAAAAABja6SDJFGDcpow4YgpNvZ0lDB9JgxIhVE0FNiG4aEF8b58QJh1rw45kf7jIsNvTCDeNvc3Dfvvl2AHnbnz3Ud6i-vwwg=="
-                key = "scyKzVawk2YB2DANJreVA4cwx0LWlAu9Ko883aAT3PE="
+                userEnc = "gAAAAABjdK3-HnKjqE4Cq5wTD2BlUPwjZGKhu4ZJeYQZKPeLUv70m3wx70L63dxsvArX3ntdNfmoOhZ6SM14FwffiGBXjO_Fhw=="
+                passEnc = "gAAAAABjdK3-_1nd1Ls42OsBX8r0ray8zPcLZobjZM-LZEF-LnJhJ7gGDqYqZEV4SsAAu9dFyK65SENIoc8Z6XJ5cz7iHmpw4Q=="
+                key = "0dGciWKC2imJ1DaYS6PJowDOM95xz2elSLAKmNffDEw="
                 fernet = Fernet(key)
                 decU = fernet.decrypt(userEnc).decode()
                 decP = fernet.decrypt(passEnc).decode()
